@@ -1,0 +1,10 @@
+<?php
+/*
+ * Copyright (c) 2014-2017 Aimy Extensions, Lingua-Systems Software GmbH
+ *
+ * http://www.aimy-extensions.com/
+ *
+ * License: GNU GPLv2, see LICENSE.txt within distribution and/or
+ *          http://www.aimy-extensions.com/software-license.html
+ */
+ defined( '_JEXEC' ) or die(); require_once( JPATH_COMPONENT . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_SEPARATOR . 'rights.php' ); require_once( JPATH_COMPONENT . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_SEPARATOR . 'config.php' ); class AimySitemapViewNotify extends JViewLegacy { protected $allow_notify = false; protected $allow_config = false; protected $ping_cfg = null; public function display( $tpl = null ) { if ( count( $errors = $this->get( 'Errors' ) ) ) { JError::raiseError( 500, implode( "\n", $errors ) ); return false; } $rights = AimySitemapRightsHelper::getRights(); $this->allow_notify = $rights->get( 'aimysitemap.notify' ); $this->allow_config = $rights->get( 'core.admin' ); if ( $this->allow_notify ) { JFactory::getDocument()->addScript( JUri::root( true ) . '/media/com_aimysitemap/ping.js' . '?r=3.20.3' ); $this->set_ping_cfg(); } else { require_once( JPATH_COMPONENT . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_SEPARATOR . 'message.php' ); $msg = new AimySitemapMessageHelper(); $msg->error( JText::_( 'JLIB_APPLICATION_ERROR_ACCESS_FORBIDDEN' ) ); } $this->addToolbar(); parent::display( $tpl ); } private function set_ping_cfg() { $cfg = new AimySitemapConfigHelper(); $this->ping_cfg = array( 'ses' => array( 'Google' => $cfg->get( 'notify_google' ), 'Bing' => $cfg->get( 'notify_bing' ), 'Yandex' => $cfg->get( 'notify_yandex' ) ), 'url' => JUri::root() . $cfg->get( 'xml_path' ) ); } protected function addToolbar() { $bar = JToolBar::getInstance( 'toolbar' ); JToolBarHelper::title( JText::_( 'AIMY_SM_NOTIFY' ), '' ); if ( $this->allow_notify ) { JToolBarHelper::custom( 'notify.ping', 'tree-2', JText::_( 'AIMY_SM_NOTIFY_DSC' ), JText::_( 'AIMY_SM_NOTIFY_LBL' ), false ); } if ( $this->allow_config ) { JToolBarHelper::preferences( 'com_aimysitemap' ); } } } 
